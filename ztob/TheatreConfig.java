@@ -91,7 +91,7 @@ public interface TheatreConfig extends Config
     @ConfigItem(
             position = 9,
             keyName = "VerzikCupcakes",
-            name = "Verzik yellow timing",
+            name = "Verzik cupcakes",
             description = ""
     )
     default boolean VerzikCupcakes(){ return false; }
