@@ -10,10 +10,12 @@ package net.runelite.client.plugins.ztob;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.*;
 import net.runelite.api.Point;
 import net.runelite.api.coords.LocalPoint;
+import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -124,7 +126,29 @@ public class TheatreOverlay extends Overlay {
 
         if (plugin.isRunSotetseg())
         {
-            if (config.SotetsegMaze())
+            if (config.SotetsegMaze1())
+            {
+                int i = 1;
+                for (GroundObject o : plugin.getRedTiles().keySet())
+                {
+                    Polygon poly = o.getCanvasTilePoly();
+                    if (poly != null)
+                    {
+                        graphics.setColor(Color.WHITE);
+                        graphics.setStroke(new BasicStroke(2));
+                        graphics.draw(poly);
+                    }
+                    Point textLocation = o.getCanvasTextLocation(graphics, String.valueOf(i), 0);
+                    if (textLocation != null)
+                    {
+                        OverlayUtil.renderTextLocation(graphics, textLocation, String.valueOf(i), Color.WHITE);
+                    }
+
+                    i++;
+                }
+            }
+
+            if (config.SotetsegMaze2())
             {
                 for (WorldPoint p : plugin.getRedTilesOverworld())
                 {
@@ -166,6 +190,14 @@ public class TheatreOverlay extends Overlay {
 
         if (plugin.isRunVerzik())
         {
+            if (config.VerzikCupcakes())
+            {
+                for (WorldPoint p : plugin.getVerzik_RangeProjectiles().values())
+                {
+                    drawTile(graphics, p, Color.RED, 2, 180, 50);
+                }
+            }
+
             if (config.VerzikYellow())
             {
                 for (WorldPoint p : plugin.getVerzik_YellowTiles())
@@ -182,6 +214,32 @@ public class TheatreOverlay extends Overlay {
                     }
                 }
             }
+
+            final NPC boss = plugin.getVerzik_NPC();
+            if (boss.getId() == NpcID.VERZIK_VITUR_8374)
+            {
+                if (config.VerzikTick())
+                {
+                    final int ticksLeft = plugin.getP3_TicksUntilAttack();
+                    if (ticksLeft > 0 && ticksLeft < 8)
+                    {
+                        final String ticksLeftStr = String.valueOf(ticksLeft);
+                        Point canvasPoint = boss.getCanvasTextLocation(graphics, ticksLeftStr, 60);
+                        renderTextLocation(graphics, ticksLeftStr, 15, Font.BOLD, Color.WHITE, canvasPoint);
+                    }
+                }
+
+                if (config.VerzikMelee() && boss.getAnimation() != 8127)
+                {
+                    List<WorldPoint> meleeRange = getHitSquares(boss.getWorldLocation(), 7, 1, false);
+
+                    for (WorldPoint p : meleeRange)
+                    {
+                        drawTile(graphics, p, Color.WHITE, 1,155, 10);
+                    }
+                }
+            }
+
         }
         return null;
     }
@@ -243,5 +301,23 @@ public class TheatreOverlay extends Overlay {
             OverlayUtil.renderTextLocation(graphics, canvasCenterPoint_shadow, txtString, Color.BLACK);
             OverlayUtil.renderTextLocation(graphics, canvasCenterPoint, txtString, fontColor);
         }
+    }
+
+    private List<WorldPoint> getHitSquares(WorldPoint npcLoc, int npcSize, int thickness, boolean includeUnder)
+    {
+        List<WorldPoint> little = new WorldArea(npcLoc, npcSize, npcSize).toWorldPointList();
+        List<WorldPoint> big = new WorldArea(npcLoc.getX()-thickness, npcLoc.getY()-thickness, npcSize + (thickness * 2), npcSize + (thickness * 2), npcLoc.getPlane()).toWorldPointList();
+        if (!includeUnder)
+        {
+            for (Iterator<WorldPoint> it = big.iterator(); it.hasNext();)
+            {
+                WorldPoint p = it.next();
+                if (little.contains(p))
+                {
+                    it.remove();
+                }
+            }
+        }
+        return big;
     }
 }
