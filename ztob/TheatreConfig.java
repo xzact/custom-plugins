@@ -58,14 +58,22 @@ public interface TheatreConfig extends Config
 
     @ConfigItem(
             position = 5,
-            keyName = "SotetsegMaze",
-            name = "Sotetseg maze (solo)",
+            keyName = "SotetsegMaze1",
+            name = "Sotetseg maze",
             description = ""
     )
-    default boolean SotetsegMaze(){ return false; }
+    default boolean SotetsegMaze1(){ return false; }
 
     @ConfigItem(
             position = 6,
+            keyName = "SotetsegMaze2",
+            name = "Sotetseg maze (solo mode)",
+            description = ""
+    )
+    default boolean SotetsegMaze2(){ return false; }
+
+    @ConfigItem(
+            position = 7,
             keyName = "XarpusExhumed",
             name = "Xarpus exhumed",
             description = ""
@@ -73,7 +81,7 @@ public interface TheatreConfig extends Config
     default boolean XarpusExhumed(){ return false; }
 
     @ConfigItem(
-            position = 7,
+            position = 8,
             keyName = "XarpusTick",
             name = "Xarpus tick",
             description = ""
@@ -81,7 +89,31 @@ public interface TheatreConfig extends Config
     default boolean XarpusTick(){ return false; }
 
     @ConfigItem(
-            position = 8,
+            position = 9,
+            keyName = "VerzikCupcakes",
+            name = "Verzik yellow timing",
+            description = ""
+    )
+    default boolean VerzikCupcakes(){ return false; }
+
+    @ConfigItem(
+            position = 10,
+            keyName = "VerzikTick",
+            name = "Verzik p3 tick",
+            description = ""
+    )
+    default boolean VerzikTick(){ return false; }
+
+    @ConfigItem(
+            position = 11,
+            keyName = "VerzikMelee",
+            name = "Verzik p3 melee range",
+            description = ""
+    )
+    default boolean VerzikMelee(){ return false; }
+
+    @ConfigItem(
+            position = 12,
             keyName = "VerzikYellow",
             name = "Verzik yellow timing",
             description = ""
