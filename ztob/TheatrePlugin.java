@@ -38,7 +38,16 @@ public class TheatrePlugin extends Plugin {
     private static final int GROUNDOBJECT_ID_EXHUMED = 32743;
     private static final int ANIMATION_ID_XARPUS = 8059;
     private static final int GRAPHICSOBJECT_ID_YELLOW = 1595;
+    private static final int PROJECTILE_ID_P2RANGE = 1583;
     private static final int PROJECTILE_ID_YELLOW = 1596;
+    private static final int ANIMATION_ID_P3_WEB = 8127;
+    private static final int ANIMATION_ID_P3_YELLOW = 8126;
+    private static final int ANIMATION_ID_P3_MELEE = 8123;
+    private static final int ANIMATION_ID_P3_MAGE = 8124;
+    private static final int ANIMATION_ID_P3_RANGE = 8125;
+    private static final int VERZIK_ID_P3 = NpcID.VERZIK_VITUR_8374;
+    private static final int NPC_ID_TORNADO = 8386;
+    private static final int PROJECTILE_ID_P3_GREEN = 1598;
 
 
     @Getter(AccessLevel.PACKAGE)
@@ -82,6 +91,9 @@ public class TheatrePlugin extends Plugin {
     private boolean runSotetseg;
 
     @Getter(AccessLevel.PACKAGE)
+    private final Map<GroundObject, Tile> RedTiles = new LinkedHashMap<>();
+
+    @Getter(AccessLevel.PACKAGE)
     private List<WorldPoint> RedTilesOverworld = new ArrayList<>();
 
     private List<WorldPoint> BlackTilesOverworld = new ArrayList<>();
@@ -91,7 +103,6 @@ public class TheatrePlugin extends Plugin {
     private List<WorldPoint> RedTilesUnderworld= new ArrayList<>();
 
     private List<Point> GridPath = new ArrayList<>();
-
 
     @Getter(AccessLevel.PACKAGE)
     private boolean runXarpus;
@@ -110,9 +121,14 @@ public class TheatrePlugin extends Plugin {
     @Getter(AccessLevel.PACKAGE)
     private NPC Xarpus_NPC;
 
-
     @Getter(AccessLevel.PACKAGE)
     private boolean runVerzik;
+
+    @Getter(AccessLevel.PACKAGE)
+    private final Map<Projectile, WorldPoint> Verzik_RangeProjectiles = new HashMap<>();
+
+    @Getter(AccessLevel.PACKAGE)
+    private int P3_TicksUntilAttack = -1;
 
     @Getter(AccessLevel.PACKAGE)
     private Projectile Verzik_YellowBall;
@@ -120,6 +136,10 @@ public class TheatrePlugin extends Plugin {
     @Getter(AccessLevel.PACKAGE)
     private List<WorldPoint> Verzik_YellowTiles = new ArrayList<>();
 
+    @Getter(AccessLevel.PACKAGE)
+    private NPC Verzik_NPC;
+
+    private int P3_attacksLeft;
 
     @Inject
     private Client client;
@@ -186,6 +206,7 @@ public class TheatrePlugin extends Plugin {
             case NpcID.SOTETSEG:
             case NpcID.SOTETSEG_8388:
                 runSotetseg = true;
+                RedTiles.clear();
                 break;
             case NpcID.XARPUS:
             case NpcID.XARPUS_8339:
@@ -204,6 +225,9 @@ public class TheatrePlugin extends Plugin {
             case NpcID.VERZIK_VITUR_8373:
             case NpcID.VERZIK_VITUR_8374:
             case NpcID.VERZIK_VITUR_8375:
+                P3_TicksUntilAttack = -1;
+                P3_attacksLeft = 9;
+                Verzik_NPC = npc;
                 runVerzik = true;
                 break;
         }
@@ -244,6 +268,7 @@ public class TheatrePlugin extends Plugin {
                 break;
             case NpcID.SOTETSEG:
             case NpcID.SOTETSEG_8388:
+                RedTiles.clear();
                 if (client.getPlane() != 3)
                 {
                     runSotetseg = false;
@@ -268,6 +293,7 @@ public class TheatrePlugin extends Plugin {
             case NpcID.VERZIK_VITUR_8374:
             case NpcID.VERZIK_VITUR_8375:
                 runVerzik = false;
+                Verzik_NPC = null;
                 break;
         }
 
@@ -299,7 +325,14 @@ public class TheatrePlugin extends Plugin {
             {
                 Tile t = event.getTile();
                 WorldPoint p = t.getWorldLocation();
-                if (p.getPlane() != 0)
+                if (p.getPlane() == 0)
+                {
+                    if (!RedTiles.containsValue(t))
+                    {
+                        RedTiles.put(o,t);
+                    }
+                }
+                else
                 {
                     if (!RedTilesUnderworld.contains(p))
                         RedTilesUnderworld.add(p);
@@ -313,6 +346,20 @@ public class TheatrePlugin extends Plugin {
             if (o.getId() == GROUNDOBJECT_ID_EXHUMED)
             {
                 Xarpus_Exhumeds.put(o, 18);
+            }
+        }
+    }
+
+    @Subscribe
+    public void onProjectileMoved(ProjectileMoved event)
+    {
+        if (runVerzik)
+        {
+            Projectile projectile = event.getProjectile();
+            if (projectile.getId() == PROJECTILE_ID_P2RANGE)
+            {
+                WorldPoint p = WorldPoint.fromLocal(client,event.getPosition());
+                Verzik_RangeProjectiles.put(projectile, p);
             }
         }
     }
@@ -420,6 +467,7 @@ public class TheatrePlugin extends Plugin {
                     RedTilesUnderworld.clear();
                     GridPath.clear();
                     sotetsegFighting = true;
+                    RedTiles.clear();
                     break;
                 }
             }
@@ -526,6 +574,17 @@ public class TheatrePlugin extends Plugin {
 
         if (runVerzik)
         {
+            if (!Verzik_RangeProjectiles.isEmpty())
+            {
+                for (Iterator<Projectile> it = Verzik_RangeProjectiles.keySet().iterator(); it.hasNext();)
+                {
+                    Projectile projectile = it.next();
+                    if (projectile.getRemainingCycles() < 1)
+                    {
+                        it.remove();
+                    }
+                }
+            }
 
             Verzik_YellowBall = null;
             Verzik_YellowTiles.clear();
@@ -544,6 +603,83 @@ public class TheatrePlugin extends Plugin {
                     Verzik_YellowTiles.add(WorldPoint.fromLocal(client, o.getLocation()));
                 }
             }
+
+            if (Verzik_NPC.getId() == VERZIK_ID_P3) {
+                boolean tornadosActive = false;
+                for (NPC npc : client.getNpcs())
+                {
+                    if (npc.getId() == NPC_ID_TORNADO)
+                    {
+                        tornadosActive = true;
+                        break;
+                    }
+                }
+
+                boolean isGreenBall = false;
+                for (Projectile projectile : client.getProjectiles())
+                {
+                    if (projectile.getId() == PROJECTILE_ID_P3_GREEN) {
+                        isGreenBall = projectile.getRemainingCycles() > 210;
+                        break;
+                    }
+                }
+
+                P3_TicksUntilAttack--;
+
+                switch (Verzik_NPC.getAnimation()) {
+                    case ANIMATION_ID_P3_MAGE:
+                        if (P3_TicksUntilAttack < 2) {
+                            P3_attacksLeft--;
+                            if (tornadosActive) {
+                                P3_TicksUntilAttack = 5;
+                            } else {
+                                P3_TicksUntilAttack = 7;
+                            }
+                            if (P3_attacksLeft < 1) {
+                                P3_TicksUntilAttack = 24;
+                            }
+                        }
+                        break;
+                    case ANIMATION_ID_P3_RANGE:
+                        if (P3_TicksUntilAttack < 2) {
+                            P3_attacksLeft--;
+                            if (tornadosActive) {
+                                P3_TicksUntilAttack = 5;
+                            } else {
+                                P3_TicksUntilAttack = 7;
+                            }
+                            if (P3_attacksLeft < 1) {
+                                P3_TicksUntilAttack = 30;
+                            }
+                            if (isGreenBall) {
+                                P3_TicksUntilAttack = 12;
+                            }
+                        }
+                        break;
+                    case ANIMATION_ID_P3_MELEE:
+                        if (P3_TicksUntilAttack < 2) {
+                            P3_attacksLeft--;
+                            if (tornadosActive) {
+                                P3_TicksUntilAttack = 5;
+                            } else {
+                                P3_TicksUntilAttack = 7;
+                            }
+                            if (P3_attacksLeft < 1) {
+                                P3_TicksUntilAttack = 24;
+                            }
+                        }
+                        break;
+                    case ANIMATION_ID_P3_WEB:
+                        P3_attacksLeft = 4;
+                        P3_TicksUntilAttack = 11; //
+                        break;
+                    case ANIMATION_ID_P3_YELLOW:
+                        P3_attacksLeft = 14;
+                        P3_TicksUntilAttack = 11;
+                        break;
+                }
+            }
+
         }
     }
 
