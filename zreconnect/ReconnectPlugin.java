@@ -3,6 +3,7 @@
  * No rights reserved. Use, redistribute, and modify at your own discretion,
  * and in accordance with Yagex and RuneLite guidelines.
  * However, aforementioned monkey would prefer if you don't sell this plugin for profit.
+ * Credit to lyzrds for input on creating this plugin.
  */
 
 package net.runelite.client.plugins.zreconnect;
