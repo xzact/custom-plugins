@@ -591,9 +591,10 @@ public class TheatrePlugin extends Plugin {
 
             for (Projectile projectile : client.getProjectiles())
             {
-                if (projectile.getId() == PROJECTILE_ID_YELLOW && projectile.getInteracting() == client.getLocalPlayer())
+                if (projectile.getId() == PROJECTILE_ID_YELLOW)
                 {
                     Verzik_YellowBall = projectile;
+                    break;
                 }
             }
             for (GraphicsObject o : client.getGraphicsObjects())
