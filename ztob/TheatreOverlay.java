@@ -187,7 +187,8 @@ public class TheatreOverlay extends Overlay {
                 }
             }
         }
-
+        
+        /*
         if (plugin.isRunVerzik())
         {
             if (config.VerzikCupcakes())
@@ -241,6 +242,7 @@ public class TheatreOverlay extends Overlay {
             }
 
         }
+        */
         return null;
     }
 
