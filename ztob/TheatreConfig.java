@@ -88,6 +88,7 @@ public interface TheatreConfig extends Config
     )
     default boolean XarpusTick(){ return false; }
 
+    /*
     @ConfigItem(
             position = 9,
             keyName = "VerzikCupcakes",
@@ -119,4 +120,5 @@ public interface TheatreConfig extends Config
             description = ""
     )
     default boolean VerzikYellow(){ return false; }
+    */
 }
