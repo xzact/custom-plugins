@@ -8,16 +8,31 @@
 
 package net.runelite.client.plugins.ztob;
 
-import java.util.*;
+import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Iterator;
 import javax.inject.Inject;
-import net.runelite.client.eventbus.Subscribe;
 import com.google.inject.Provides;
 import lombok.AccessLevel;
 import lombok.Getter;
-import net.runelite.api.*;
+import net.runelite.api.Point;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.*;
+import net.runelite.api.NPC;
+import net.runelite.api.NpcID;
+import net.runelite.api.Projectile;
+import net.runelite.api.Client;
+import net.runelite.api.Tile;
+import net.runelite.api.GroundObject;
+import net.runelite.api.GraphicsObject;
+import net.runelite.client.eventbus.Subscribe;
+import net.runelite.api.events.GroundObjectSpawned;
+import net.runelite.api.events.NpcDespawned;
+import net.runelite.api.events.NpcSpawned;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.ProjectileMoved;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -571,7 +586,7 @@ public class TheatrePlugin extends Plugin {
             }
 
         }
-
+        /*        
         if (runVerzik)
         {
             if (!Verzik_RangeProjectiles.isEmpty())
@@ -682,6 +697,8 @@ public class TheatrePlugin extends Plugin {
             }
 
         }
+        */    
+            
     }
 
 }
