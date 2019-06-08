@@ -567,7 +567,7 @@ public class TheatrePlugin extends Plugin {
                     it.remove();
                 }
             }
-            if (Xarpus_NPC.getOverhead() != null )
+            if (Xarpus_NPC.getOverheadText() != null )
             {
                 Xarpus_Stare = true;
             }
